@@ -7,7 +7,7 @@
 # <br>plot_labels = ['RR', 'TQ', 'QTc', 'JTc', 'TpeakTend'] ------> WRONG!
 # <br>plot_labels = ['QTc', 'JTc', 'TpeakTend', 'TQ', 'RR'] ------> CORRECT!
 
-# In[1]:
+# In[22]:
 
 
 import pandas as pd
@@ -20,7 +20,7 @@ import os
 # In[68]:
 
 
-def get_short_test_data_from_Romanov(filepath="./test_data.ods", sep='delimiter',  automatic_measure=True):
+def get_short_test_data_from_Roman(filepath="./test_data.ods", automatic_measure=True):
     df = pd.read_csv(filepath, header=None, index_col=0)
     if automatic_measure:
         print(df.index[4] + "is dropped")
@@ -35,4 +35,27 @@ def get_short_test_data_from_Romanov(filepath="./test_data.ods", sep='delimiter'
 
 
 # get_short_test_data_from_Romanov("./data/short_test_data_from_Roman.csv", automatic_measure=False)
+
+
+# In[68]:
+
+
+def get_short_test_data_from_Svetlana_G(dirpath="../data/test_data"):
+    plot_labels = ['QTc(B)', 'JTc(B)', 'TpeakTend', 'TQ', 'R-R']
+    list_files = os.listdir(dirpath)
+    test_patient_data_list = []
+    for file in list_files:
+        df = pd.read_csv(dirpath+"/"+file, header=None,
+                         skiprows=[0,2,3,4,6]+list(range(10, 20)), index_col=1)
+        
+        df = df[df < 3].dropna(axis=1)
+        df = df.reindex(plot_labels)
+        test_patient_data_list.append((file, df.values.T))
+    return test_patient_data_list
+
+
+# In[70]:
+
+
+# get_short_test_data_from_Svetlana_G(dirpath="/home/feax/Desktop/FeaxLovesGit/science_work/data/test_data")
 
