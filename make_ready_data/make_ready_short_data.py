@@ -7,7 +7,7 @@
 # <br>plot_labels = ['RR', 'TQ', 'QTc', 'JTc', 'TpeakTend'] ------> WRONG!
 # <br>plot_labels = ['QTc', 'JTc', 'TpeakTend', 'TQ', 'RR'] ------> CORRECT!
 
-# In[22]:
+# In[1]:
 
 
 import pandas as pd
@@ -17,10 +17,10 @@ import numpy as np
 import os
 
 
-# In[68]:
+# In[2]:
 
 
-def get_short_test_data_from_Roman(filepath="./test_data.ods", automatic_measure=True):
+def get_short_test_data_from_Roman(filepath="./data/short_test_data_from_Roman.csv", automatic_measure=True):
     df = pd.read_csv(filepath, header=None, index_col=0)
     if automatic_measure:
         print(df.index[4] + "is dropped")
@@ -31,13 +31,13 @@ def get_short_test_data_from_Roman(filepath="./test_data.ods", automatic_measure
     return df.values.T
 
 
-# In[69]:
+# In[13]:
 
 
-# get_short_test_data_from_Romanov("./data/short_test_data_from_Roman.csv", automatic_measure=False)
+# get_short_test_data_from_Roman("../data/short_test_data_from_Roman.csv", automatic_measure=False)
 
 
-# In[68]:
+# In[4]:
 
 
 def get_short_test_data_from_Svetlana_G(dirpath="../data/test_data"):
@@ -54,8 +54,13 @@ def get_short_test_data_from_Svetlana_G(dirpath="../data/test_data"):
     return test_patient_data_list
 
 
-# In[70]:
+# In[5]:
 
 
 # get_short_test_data_from_Svetlana_G(dirpath="/home/feax/Desktop/FeaxLovesGit/science_work/data/test_data")
 
+def extraxt_samples_from_new_test_data(test_patients_data):
+    patients_samples = np.empty((0, 5))
+    for data in test_patients_data:
+        patients_samples = np.concatenate((patients_samples, data[1]))
+    return patients_samples

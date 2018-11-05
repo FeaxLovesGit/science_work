@@ -30,7 +30,7 @@
 #     
 # В итоге данные будут в одинаковом объеме, граница количества больных срезается по количеству здоровых, поскольку здоровых меньше.
 
-# In[1]:
+# In[3]:
 
 
 import pandas as pd
@@ -40,7 +40,7 @@ import numpy as np
 import os
 
 
-# In[11]:
+# In[4]:
 
 
 def read_data(dirpath="./"):
@@ -59,7 +59,7 @@ def read_data(dirpath="./"):
     return info, final_filelist
 
 
-# In[3]:
+# In[5]:
 
 
 # l = [RR, TQ, QTc, JTc, TpeakTend]
@@ -89,7 +89,7 @@ def get_feat(arrs) :
     return newarrs
 
 
-# In[15]:
+# In[6]:
 
 
 def look_through_info(info, final_filelist, dirpath="./"):
@@ -132,10 +132,11 @@ def look_through_info(info, final_filelist, dirpath="./"):
     return data_sick, data_heal, inds_sick, inds_heal
 
 
-# In[27]:
+# In[143]:
 
 
-def get_train_and_test_sets(DataSick, DataHeal, IndsSick, IndsHeal, per_edge=0.8):
+def get_train_and_test_sets(DataSick, DataHeal, IndsSick, IndsHeal, 
+                            per_edge=0.8, balanced_data=True, make_shuffle=True):
         
     data_sick = DataSick.copy()
     data_heal = DataHeal.copy()
@@ -144,9 +145,18 @@ def get_train_and_test_sets(DataSick, DataHeal, IndsSick, IndsHeal, per_edge=0.8
     
     #     number_of_health -- number of health patterns
     #     take exactly helth because its less than sick 
-    number_of_health = inds_heal[-1,0] + inds_heal[-1,1]
-    edge1 = int(number_of_health * per_edge) # how much is train patterns
-    edge2 = number_of_health
+    
+    number_of_health = inds_heal[-1,0] + inds_heal[-1,1]        
+    if balanced_data:
+        number_of_sick = number_of_health
+    else:
+        number_of_sick = inds_sick[-1,0] + inds_sick[-1,1]
+        
+    edge1_heal = int(number_of_health * per_edge) # how much is train patterns for heal people
+    edge2_heal= number_of_health
+    edge1_sick = int(number_of_sick * per_edge) # how much is train patterns for sick people
+    edge2_sick= number_of_sick
+    
     def get_data_by_indexes(ready_data, inds):
         data = np.empty((0,5+1))
         for i in range(inds.shape[0]):
@@ -164,42 +174,40 @@ def get_train_and_test_sets(DataSick, DataHeal, IndsSick, IndsHeal, per_edge=0.8
         return patient_data_list
         
     
-    def get_train_test_data(ready_data, inds):
-        np.random.shuffle(inds)
+    def get_train_test_data(ready_data, inds, edge1, edge2):
+        if make_shuffle:
+            np.random.shuffle(inds)
         ind_cumsum = np.cumsum(inds[:,1])
-        ind_train = inds[ind_cumsum < edge1]
-        ind_test = inds[(ind_cumsum >= edge1) * (ind_cumsum<edge2)]
+        ind_train = inds[ind_cumsum <= edge1]
+        ind_test = inds[(ind_cumsum > edge1) * (ind_cumsum<=edge2)]
         train_data = get_data_by_indexes(ready_data, ind_train)
         test_data = get_data_by_indexes(ready_data, ind_test)
         patient_data_list = form_list_of_test_patients(ready_data, ind_test)
         return train_data, test_data, patient_data_list
-    
-    
-    
-    tr_s, ts_s, patient_data_s =  get_train_test_data(data_sick, inds_sick)
-    tr_h, ts_h, patient_data_h = get_train_test_data(data_heal, inds_heal)
-
-    
-    patient_data = patient_data_h + patient_data_s    
         
+    tr_s, ts_s, patient_data_s =  get_train_test_data(data_sick, inds_sick, edge1_sick, edge2_sick)
+    tr_h, ts_h, patient_data_h = get_train_test_data(data_heal, inds_heal, edge1_heal, edge2_heal)
+
+    patient_data = patient_data_h + patient_data_s    
+    
     train = np.concatenate((tr_s,tr_h))
     test = np.concatenate((ts_s,ts_h))
 
-    np.random.shuffle(train)
-    np.random.shuffle(test)
+    if make_shuffle:
+        np.random.shuffle(train)
+        np.random.shuffle(test)
     return train[:,:5], test[:,:5], train[:,5], test[:,5], patient_data
 
 
-# In[44]:
+# In[147]:
 
 
 # info, final_filelist = read_data(dirpath="../")
 # data_sick, data_heal, inds_sick, inds_heal = look_through_info(info, final_filelist, dirpath="../")
-# tr_d, ts_d, tr_l, ts_l, patient_data =                 get_train_and_test_sets(data_sick, data_heal, inds_sick, inds_heal, 0.8)
+# tr_d, ts_d, tr_l, ts_l, patient_data = \
+#                 get_train_and_test_sets(data_sick, data_heal, inds_sick, inds_heal, 1, balanced_data=False)
 
 
-# In[46]:
-
-
-
-
+# 41 здоровых пациентов, 70 больных. Соответственно, всего 111 пациентов.
+# У здоровых пациентов суммарно всего 994 сэмплов. У больных - 1549. Соответственно, всего 2543 сэмлпов для обучения.
+# 

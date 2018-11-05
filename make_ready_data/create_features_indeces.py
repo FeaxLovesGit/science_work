@@ -48,7 +48,8 @@ def build_plot_for_best_features(plot_labels, indlist, y,
                                  y_arange=np.arange(0.55,0.75,0.01),
                                  marker=[':ro'],
                                  legend_label=['LogisticRegression: C = 1000'], 
-                                 savefile_name='best_features.png'):
+                                 savefile_name='best_features.png', 
+                                 title='График'):
     plt.style.use('ggplot')
     plt.rcParams['figure.figsize'] = (15,10)
     x = np.arange(len(indlist))
@@ -63,6 +64,7 @@ def build_plot_for_best_features(plot_labels, indlist, y,
 
     plt.xlabel('Features', fontsize=15)
     plt.ylabel('Score', fontsize=15)
+    plt.title(title)
     plt.savefig(savefile_name, bbox_inches='tight')
     plt.show()
 
